@@ -32,30 +32,35 @@ def normalize_path_params(cidade=None,
 
 # Parâmetros para busca com filtros
 path_params = reqparse.RequestParser()
-path_params.add_argument('cidade', type=str)
-path_params.add_argument('estrelas_min', type=float)
-path_params.add_argument('estrelas_max', type=float)
-path_params.add_argument('diaria_min', type=float)
-path_params.add_argument('diaria_max', type=float)
-path_params.add_argument('limit', type=float)
-path_params.add_argument('offset', type=float)
+path_params.add_argument('cidade', type=str, location="args")
+path_params.add_argument('estrelas_min', type=float, location="args")
+path_params.add_argument('estrelas_max', type=float, location="args")
+path_params.add_argument('diaria_min', type=float, location="args")
+path_params.add_argument('diaria_max', type=float, location="args")
+path_params.add_argument('limit', type=float, location="args")
+path_params.add_argument('offset', type=float, location="args")
 
 class Hoteis (Resource):
     def get(self):
-        connection = sqlite3.connect('banco.db')
+        connection = sqlite3.connect('instance/banco.db')
         cursor = connection.cursor()
         
         dados = path_params.parse_args()      
-        # Selecionando dados validor (que não são None)
         dados_validos = {chave:dados[chave] for chave in dados if dados[chave] is not None}
         parametros = normalize_path_params(**dados_validos)
         
         if not parametros.get('cidade'):
-            consulta = "SELECT * FROM hoteis WHERE (estrelas >= ? and estrelas <= ?) and (diaria >= ? and diaria <= ?) LIMIT ? OFFSET ?"
+            consulta = "SELECT * FROM hoteis \
+            WHERE (estrelas >= ? and estrelas <= ?) \
+            and (diaria >= ? and diaria <= ?) \
+            LIMIT ? OFFSET ?"
             tupla = tuple([parametros[chave] for chave in parametros])
             resultado = cursor.execute(consulta, tupla)
         else:
-            consulta = "SELECT * FROM hoteis WHERE (estrelas >= ? and estrelas <= ?) and (diaria >= ? and diaria <= ?) and cidade = ? LIMIT ? OFFSET ?"
+            consulta = "SELECT * FROM hoteis \
+            WHERE (estrelas >= ? and estrelas <= ?) \
+            and (diaria >= ? and diaria <= ?) \
+            and cidade = ? LIMIT ? OFFSET ?"
             tupla = tuple([parametros[chave] for chave in parametros])
             resultado = cursor.execute(consulta, tupla)
 
@@ -68,6 +73,8 @@ class Hoteis (Resource):
             'diaria': linha[3],
             'cidade': linha[4]
             })
+
+        connection.close()
         return {'hoteis': hoteis} 
     
 class Hotel(Resource):
