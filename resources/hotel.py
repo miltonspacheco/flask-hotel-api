@@ -3,7 +3,8 @@ from models.hotel import HotelModel
 from models.site import SiteModel
 from resources.filtros import normalize_path_params, consulta_sem_cidade, consulta_com_cidade
 from flask_jwt_extended import jwt_required
-import sqlite3
+from settings import *
+import psycopg2
 
 
 # Parâmetros para busca com filtros
@@ -18,7 +19,12 @@ path_params.add_argument('offset', type=float, location="args")
 
 class Hoteis (Resource):
     def get(self):
-        connection = sqlite3.connect('instance/banco.db')
+        connection = psycopg2.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME)
         cursor = connection.cursor()
         
         dados = path_params.parse_args()      
@@ -27,21 +33,24 @@ class Hoteis (Resource):
         
         if not parametros.get('cidade'):
             tupla = tuple([parametros[chave] for chave in parametros])
-            resultado = cursor.execute(consulta_sem_cidade, tupla)
+            cursor.execute(consulta_sem_cidade, tupla)
+            resultado = cursor.fetchall()
         else:
             tupla = tuple([parametros[chave] for chave in parametros])
-            resultado = cursor.execute(consulta_com_cidade, tupla)
+            cursor.execute(consulta_com_cidade, tupla)
+            resultado = cursor.fetchall()
 
         hoteis = []
-        for linha in resultado:
-            hoteis.append({
-            'hotel_id': linha[0],
-            'nome': linha[1],
-            'estrelas': linha[2],
-            'diaria': linha[3],
-            'cidade': linha[4],
-            'site_id': linha[5]
-            })
+        if resultado:
+            for linha in resultado:
+                hoteis.append({
+                'hotel_id': linha[0],
+                'nome': linha[1],
+                'estrelas': linha[2],
+                'diaria': linha[3],
+                'cidade': linha[4],
+                'site_id': linha[5]
+                })
 
         connection.close()
         return {'hoteis': hoteis} 

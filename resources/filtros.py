@@ -26,6 +26,6 @@ def normalize_path_params(cidade=None,
         'offset': offset
     }
     
-consulta_sem_cidade = "SELECT * FROM hoteis WHERE (estrelas >= ? and estrelas <= ?) and (diaria >= ? and diaria <= ?) LIMIT ? OFFSET ?"
+consulta_sem_cidade = "SELECT * FROM hoteis WHERE (estrelas >= %s and estrelas <= %s) and (diaria >= %s and diaria <= %s) LIMIT %s OFFSET %s"
 
-consulta_com_cidade = "SELECT * FROM hoteis WHERE (estrelas >= ? and estrelas <= ?) and (diaria >= ? and diaria <= ?) and cidade = ? LIMIT ? OFFSET ?"
+consulta_com_cidade = "SELECT * FROM hoteis WHERE (estrelas >= %s and estrelas <= %s) and (diaria >= %s and diaria <= %s) and cidade = %s LIMIT %s OFFSET %s"
